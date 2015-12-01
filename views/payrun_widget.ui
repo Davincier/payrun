@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>711</width>
+    <height>626</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -25,31 +25,84 @@
   <property name="windowTitle">
    <string>allocat: payruns</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../images/greencat.png</normaloff>../images/greencat.png</iconset>
+  </property>
+  <property name="autoFillBackground">
+   <bool>false</bool>
+  </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
     <layout class="QGridLayout" name="payrunGrid">
-     <item row="0" column="0">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Pay Runs</string>
-       </property>
-      </widget>
-     </item>
      <item row="3" column="0">
-      <widget class="QListWidget" name="employeeList"/>
-     </item>
-     <item row="2" column="0">
       <widget class="QLabel" name="label_2">
+       <property name="font">
+        <font>
+         <family>Comic Sans MS</family>
+         <pointsize>10</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
        <property name="text">
         <string>Employees</string>
        </property>
       </widget>
      </item>
+     <item row="2" column="0">
+      <widget class="QListWidget" name="payrunList">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QListWidget" name="employeeList"/>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label">
+       <property name="font">
+        <font>
+         <family>Comic Sans MS</family>
+         <pointsize>10</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Pay Runs</string>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="0">
-      <widget class="QListWidget" name="payrunList"/>
+      <widget class="QPushButton" name="addRunButton">
+       <property name="font">
+        <font>
+         <family>Comic Sans MS</family>
+         <pointsize>10</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Add Next Run</string>
+       </property>
+      </widget>
      </item>
      <item row="0" column="1">
       <widget class="QLabel" name="label_3">
+       <property name="font">
+        <font>
+         <family>Comic Sans MS</family>
+         <pointsize>10</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
        <property name="text">
         <string>Differences</string>
        </property>

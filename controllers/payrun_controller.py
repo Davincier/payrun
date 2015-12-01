@@ -30,7 +30,7 @@ class PayrunController(object):
 
         self.run = PayRun.get_run(self.db, run_ids)
         self.load_employees()
-        self.ui.payrunGrid.addWidget(PayDiffsWidget(self.run.diffs), 1, 1, 3, 1)
+        self.ui.payrunGrid.addWidget(PayDiffsWidget(self.run.diffs), 1, 1, 4, 1)
 
     def parse_payrun_str(self, s):
         parts = s.split(':')
