@@ -7,8 +7,8 @@ def main():
     db = MongoClient('localhost', 3001).meteor
 
     app = QApplication(sys.argv)
-    widget = PayrunController(db)
-    widget.show()
+    ctrlr = PayrunController(db)
+    ctrlr.runit()
     sys.exit(app.exec_())
 
 

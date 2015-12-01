@@ -7,8 +7,5 @@ class PayEmployee(object):
         self.fte = fte
 
     def __str__(self):
-        return self.name
-
-    def gfs(self):
-        return 'GRADE: %02d, STEP: %02d, FTE: %s' % \
-               (self.grade, self.step, self.fte)
+        return '%s: GRADE %02d, STEP %02d, FTE %s%%' % \
+               (self.name, self.grade, self.step, self.fte * 100)

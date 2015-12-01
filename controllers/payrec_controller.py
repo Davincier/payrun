@@ -1,5 +1,4 @@
-from PyQt5.QtWidgets import QDialog
-from forms.payrec_widget import Ui_PayrecWidget
+from views.payrec_widget import PayrecWidget
 
 
 fields = [
@@ -28,12 +27,10 @@ fields = [
 ]
 
 
-class PayrecController(QDialog):
+class PayrecController(object):
     def __init__(self, payrun, payrec):
-        super(PayrecController, self).__init__()
-        self.ui = Ui_PayrecWidget()
-        self.ui.setupUi(self)
-
+        self.widget = PayrecWidget()
+        self.ui = self.widget.ui
         self.payrun = payrun
         self.payrec = payrec
         self.load_record()
@@ -44,17 +41,11 @@ class PayrecController(QDialog):
         self.load_table()
 
     def load_rec_label(self):
-        s = '%s, PAY PERIOD: %02d-%02d, FCP: %s' % \
-            (self.payrec['EMPLOYEE'],
-             self.payrun['fy'], self.payrun['pp'],
-             self.payrun['cp'])
-        self.ui.rec_label.setText(s)
+        self.ui.rec_label.setText(str(self.payrec.employee))
 
     def load_gsf_label(self):
-        s = 'GRADE %02d, STEP %02d, FTE %d' % \
-            (self.payrec['GRADE'],
-             self.payrec['STEP'],
-             self.payrec['FTE'] * 100)
+        s = 'PAY PERIOD: %02d-%02d, FCP: %s' % \
+            (self.payrun['fy'], self.payrun['pp'], self.payrun['cp'])
         self.ui.gsf_label.setText(s)
 
     def load_table(self):
@@ -63,7 +54,7 @@ class PayrecController(QDialog):
         # I have no fucking idea why setItem needs a -1 row,
         # but this "works"
         for row, field in enumerate(fields):
-            self.ui.rec_table.setItem(row-1, 1, QTableWidgetItem(str(self.payrec[field])))
+            self.ui.rec_table.setItem(row-1, 1, QTableWidgetItem(str(self.payrec.rec[field])))
 
-    def show_widget(self):
-        self.exec_()
+    def runit(self):
+        self.widget.exec_()

@@ -1,28 +1,26 @@
-from PyQt5.QtWidgets import QWidget, QListWidgetItem
-from forms.payrun_widget import Ui_payrunWidget
-from forms.paydiffs_widget import PayDiffsWidget
+from PyQt5.QtWidgets import QListWidgetItem
+from views.payrun_widget import PayrunWidget
+from views.paydiffs_widget import PayDiffsWidget
+from models.pay_run import PayRun
+from models.pay_record import PayRecord
+from controllers.payrec_controller import PayrecController
 
 
-class PayrunController(QWidget):
+class PayrunController(object):
     def __init__(self, db):
-        super(PayrunController, self).__init__()
-        self.ui = Ui_payrunWidget()
-        self.ui.setupUi(self)
-
+        self.widget = PayrunWidget()
+        self.ui = self.widget.ui
         self.db = db
-
         self.load_payruns(self.ui.payrunList)
         self.payrun_selected(self.ui.payrunList.item(0))
+        self.ui.payrunList.clicked.connect(self.payrun_selected)
+        self.ui.employeeList.clicked.connect(self.employee_selected)
 
     def load_payruns(self, lst):
-        payruns = self.db.payruns.find({}, {'rex':0, 'diffs':0}).sort('_id', -1)
-
-        for payrun in payruns:
-            run = '%02d-%02d:%s' % (payrun['fy'], payrun['pp'], payrun['cp'])
-            lst.addItem(QListWidgetItem(run))
+        for payrun in PayRun.get_runs(self.db):
+            lst.addItem(QListWidgetItem(payrun.__str__()))
 
         lst.item(0).setSelected(True)
-        lst.clicked.connect(self.payrun_selected)
 
     def payrun_selected(self, item):
         if type(item) is QListWidgetItem:
@@ -30,13 +28,13 @@ class PayrunController(QWidget):
         else:
             run_ids = self.parse_payrun_str(str(item.data()))
 
-        self.run = self.db.payruns.find_one(run_ids)
+        self.run = PayRun.get_run(self.db, run_ids)
         self.load_employees()
-        self.ui.payrunGrid.addWidget(PayDiffsWidget(self.run['diffs']), 1, 1, 3, 1)
+        self.ui.payrunGrid.addWidget(PayDiffsWidget(self.run.diffs), 1, 1, 3, 1)
 
     def parse_payrun_str(self, s):
         parts = s.split(':')
-        cp_nbr = parts[1]
+        cp_nbr = parts[1].strip(' ')
         parts = parts[0].split('-')
         fy = int(parts[0])
         pay_period = int(parts[1])
@@ -47,29 +45,21 @@ class PayrunController(QWidget):
     def load_employees(self):
         if not self.run:
             return
-        employees = self.run['rex']
-        from operator import itemgetter
-        employees = sorted(employees, key=itemgetter('EMPLOYEE'))
+
         lst = self.ui.employeeList
         lst.clear()
-        for employee in employees:
-            lst.addItem(QListWidgetItem(str(employee['EMPLOYEE'])))
+
+        for rec in self.run.rex:
+            lst.addItem(QListWidgetItem(rec.employee.name))
         lst.item(0).setSelected(True)
-        lst.clicked.connect(self.employee_selected)
 
     def employee_selected(self, item):
-        employee_name = str(item.data())
-        rec = next((r for r in self.run['rex'] if r['EMPLOYEE'] == employee_name), None)
+        rec = PayRecord.get_for_employee(self.run.rex, str(item.data()))
         if not rec:
             return
 
-        # from models.pay_employee import PayEmployee
-        # payemp = PayEmployee(employee_name, 12, 3, '015')
-        #
-        # from models.pay_record import PayRecord
-        # from models.pay_run import PayRun
-        # payrec = PayRecord(self.run, rec)
+        controller = PayrecController(self.parse_payrun_str(str(self.run)), rec)
+        controller.runit()
 
-        from controllers.payrec_controller import PayrecController
-        controller = PayrecController(self.run, rec)
-        controller.show_widget()
+    def runit(self):
+        self.widget.show()

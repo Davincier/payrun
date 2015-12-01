@@ -1,18 +1,22 @@
-from models.pay_run import PayRun
+from models.pay_employee import PayEmployee
 
 
 class PayRecord(object):
 
     def __init__(self, dct):
-        self.employee = dct['EMPLOYEE']
-        self.run = PayRun({
-            '_id': dct['_id'],
-            'fy': dct['fy'],
-            'pp': dct['pp'],
-            'cp': dct['cp']
-        })
-        self.rec = rec
+        self.employee = PayEmployee(
+            dct['EMPLOYEE'],
+            dct['GRADE'],
+            dct['STEP'],
+            dct['FTE']
+        )
+        self.rec = dct
+        del self.rec['EMPLOYEE']
+        del self.rec['GRADE']
+        del self.rec['STEP']
+        del self.rec['FTE']
 
-    def __str__(self):
-        return '%s, PAY PERIOD: %s, FCP: %s' % \
-               (self.employee, self.run, self.run.cp)
+    @staticmethod
+    def get_for_employee(rex, name):
+        xx = [x for x in rex if x.employee.name == name]
+        return xx[0] if xx else None
