@@ -25,3 +25,15 @@ class PayRun(object):
         rec = PayRun(db.payruns.find_one(run_ids))
         rec.rex = sorted(rec.rex, key=lambda rec: rec.employee.name)
         return rec
+
+    @staticmethod
+    def get_next_payrun_id(fy, pp):
+        pp += 1
+        if pp > 26:
+            pp = 1
+            fy += 1
+        return {'fy': fy, 'pp': pp}
+
+    @staticmethod
+    def save_run(db, run):
+        pass

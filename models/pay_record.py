@@ -20,3 +20,7 @@ class PayRecord(object):
     def get_for_employee(rex, name):
         xx = [x for x in rex if x.employee.name == name]
         return xx[0] if xx else None
+
+    @staticmethod
+    def save(db, rec):
+        db.payruns.insert(rec)

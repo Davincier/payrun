@@ -15,6 +15,7 @@ class PayrunController(object):
         self.payrun_selected(self.ui.payrunList.item(0))
         self.ui.payrunList.clicked.connect(self.payrun_selected)
         self.ui.employeeList.clicked.connect(self.employee_selected)
+        self.ui.addRunButton.clicked.connect(self.add_next_run)
 
     def load_payruns(self, lst):
         for payrun in PayRun.get_runs(self.db):
@@ -63,3 +64,13 @@ class PayrunController(object):
 
     def runit(self):
         self.widget.show()
+
+    def add_next_run(self, db):
+        latest_run = self.ui.payrunList.item(0).text()
+        tmp = self.parse_payrun_str(latest_run)
+        run_id = PayRun.get_next_payrun_id(tmp['fy'], tmp['pp'])
+
+        from controllers.vista_controller import get_payrun
+        run = get_payrun(run_id)
+
+        PayRun.save_run(db, run)
