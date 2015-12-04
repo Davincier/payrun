@@ -8,4 +8,4 @@ class PayEmployee(object):
 
     def __str__(self):
         return '%s: GRADE %02d, STEP %02d, FTE %s%%' % \
-               (self.name, self.grade, self.step, self.fte * 100)
+               (self.name, self.grade, self.step, self.fte)

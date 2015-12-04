@@ -1,4 +1,4 @@
-from views.payrec_widget import PayrecWidget
+from views import PayrecWidget
 
 
 fields = [
@@ -36,17 +36,15 @@ class PayrecController(object):
         self.load_record()
 
     def load_record(self):
-        self.load_rec_label()
-        self.load_gsf_label()
+        self.load_employee_label()
+        self.load_run_label()
         self.load_table()
 
-    def load_rec_label(self):
+    def load_employee_label(self):
         self.ui.rec_label.setText(str(self.payrec.employee))
 
-    def load_gsf_label(self):
-        s = 'PAY PERIOD: %02d-%02d, FCP: %s' % \
-            (self.payrun['fy'], self.payrun['pp'], self.payrun['cp'])
-        self.ui.gsf_label.setText(s)
+    def load_run_label(self):
+        self.ui.gsf_label.setText(self.payrun)
 
     def load_table(self):
         from PyQt5.QtWidgets import QTableWidgetItem

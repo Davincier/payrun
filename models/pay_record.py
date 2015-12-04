@@ -1,9 +1,7 @@
-from models.pay_employee import PayEmployee
-
-
 class PayRecord(object):
 
     def __init__(self, dct):
+        from models import PayEmployee
         self.employee = PayEmployee(
             dct['EMPLOYEE'],
             dct['GRADE'],
@@ -22,5 +20,13 @@ class PayRecord(object):
         return xx[0] if xx else None
 
     @staticmethod
-    def save(db, rec):
-        db.payruns.insert(rec)
+    def get_diffs(previous_rec, current_rec):
+        diffs = []
+        for field in current_rec:
+            if current_rec[field] != previous_rec[field]:
+                diffs.append({
+                    'field_name': field,
+                    'current_amount': current_rec[field],
+                    'previous_amount': previous_rec[field]
+                })
+        return diffs

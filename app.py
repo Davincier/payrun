@@ -3,7 +3,7 @@ def main():
     from pymongo import MongoClient
     from PyQt5.QtWidgets import QApplication
     import qdarkstyle
-    from controllers.payrun_controller import PayrunController
+    from controllers import PayrunController
 
     db = MongoClient('localhost', 3001).meteor
 

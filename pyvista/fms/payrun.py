@@ -73,7 +73,8 @@ def get_payrun_records(cxn, ien, cp_nbr):
 def get_multi_payrun_records(cxn, ien, cp_nbrs):
     rex = []
     for cp in cp_nbrs:
-        rex += get_payrun_records(cxn, ien, cp)
+        data = get_payrun_records(cxn, ien, cp)
+        rex.append({'cp': cp, 'data': data})
     return rex
 
 def get_payrun(cxn, cp_nbrs, ien=None):

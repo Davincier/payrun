@@ -40,24 +40,11 @@ def import_data(sql_db, mongo_db):
 
     for sql_run in sql_payruns:
         json_run = {
-            'fy': sql_run['fy'],
-            'pp': sql_run['pay_period'],
-            'cp': sql_run['cp_nbr'],
-            'rex': [],
+            'tag': '%02d-%02d-%s' % (
+                sql_run['fy'], sql_run['pay_period'], sql_run['cp_nbr']
+            ),
             'diffs': []
         }
-
-        tbl = 'efms_pay_run_records'
-        sql = 'select * from ' + tbl + ' where payrun_id=' + str(sql_run['id'])
-        rex = get_sql_data(sql_db, tbl, sql)
-        newrex = []
-        for rec in rex:
-            newrec = {}
-            for sqlname in flds:
-                newrec[flds[sqlname]] = rec[sqlname]
-            newrec['EMPLOYEE'] = employees[newrec['EMPLOYEE']]
-            newrex.append(newrec)
-        json_run['rex'] = newrex
 
         tbl = 'efms_pay_run_diffs'
         sql = 'select * from ' + tbl + ' where payrun_id=' + str(sql_run['id'])
@@ -77,6 +64,21 @@ def import_data(sql_db, mongo_db):
         json_run['diffs'] = diffs
 
         mongo_db.payruns.insert(json_run)
+
+        tbl = 'efms_pay_run_records'
+        sql = 'select * from ' + tbl + ' where payrun_id=' + str(sql_run['id'])
+        rex = get_sql_data(sql_db, tbl, sql)
+        for rec in rex:
+            newrec = {}
+            for sqlname in flds:
+                newrec[flds[sqlname]] = rec[sqlname]
+            newrec['PAYRUN'] = json_run['tag']
+            newrec['EMPLOYEE'] = employees[newrec['EMPLOYEE']]
+            mongo_db.payrun_records.insert(newrec)
+
+    from pymongo import DESCENDING
+    mongo_db.payruns.create_index([('tag', DESCENDING)])
+    mongo_db.payrun_records.create_index([('PAYRUN', DESCENDING)])
 
 
 def get_sql_data(db, table, sql):
