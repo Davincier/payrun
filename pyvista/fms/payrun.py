@@ -4,27 +4,60 @@ from pyvista.rpc import DdrLister
 from pyvista.rpc.gvv import *
 
 
-def get_pay_run_ien(cxn, run_id):
-    arg = '$O(^PRST(459,"B","%s",1))' % (run_id)
-    return get_variable_value(cxn, arg)
+class FmsPayrun(object):
 
+    def __init__(self, cxn, pay_period):
+        self.cxn = cxn
+        self.pay_period = pay_period
+        if cxn:
+            self.ien = self._get_ien()
 
-def get_pay_period(cxn, ien):
-    arg = '$G(^PRST(459,%s,0))' % ien
-    response = get_variable_value(cxn, arg)
-    parts = response.split('^')
-    subparts = parts[0].split('-')
-    return {
-        'ien': ien,
-        'fy': int(subparts[0]),
-        'nbr': int(subparts[1]),
-        'dt': int(parts[1])
-    }
+    def __str__(self):
+        return self.pay_period
 
+    def _get_ien(self):
+        arg = '$O(^PRST(459,"B","%s",1))' % (self.pay_period)
+        return get_variable_value(self.cxn, arg)
 
-def get_latest_pay_period(cxn):
-    hdr = get_global_header(cxn, 'PRST(459')
-    return get_pay_period(cxn, hdr['last_ien'])
+    def _build_query(self, cp):
+        query = DdrLister()
+        query.file = '459.01'
+        query.iens = ',%s,' % (self.ien,)
+        query.fields = self._get_vista_field_str()
+        query.index = 'B'
+        query.screen = 'I $P(^(0),U,10)="%s"' % (cp,)
+        return query
+
+    def get(self, cps):
+        rex = {}
+        for cp in cps:
+            query = self._build_query(cp)
+            rex[cp] = query.find(self.cxn)
+        return rex
+
+    def _get_vista_field_str(self):
+        return ';'.join([f[0] for f in fieldDefs])
+
+    def _get_fieldnames(self):
+        fieldnames = [f[1] for f in fieldDefs]
+        fieldnames.insert(0, 'EMPLOYEE UID')
+        return fieldnames
+
+    # def get_pay_period(self):
+    #     arg = '$G(^PRST(459,%s,0))' % self.ien
+    #     response = get_variable_value(self.cxn, arg)
+    #     parts = response.split('^')
+    #     subparts = parts[0].split('-')
+    #     return {
+    #         'ien': self.ien,
+    #         'fy': int(subparts[0]),
+    #         'nbr': int(subparts[1]),
+    #         'dt': int(parts[1])
+    #     }
+    #
+    # def get_latest_pay_period(self):
+    #     hdr = get_global_header(self.cxn, 'PRST(459')
+    #     return self.get_pay_period(self.cxn, hdr['last_ien'])
 
 
 fieldDefs = [
@@ -55,35 +88,3 @@ fieldDefs = [
     ('137', 'HRS EXCESS 8 DAY AMT WK 1'),
     ('138', 'HRS EXCESS 8 DAY AMT WK 2')
 ]
-
-fields = [f[0] for f in fieldDefs]
-fieldnames = [f[1] for f in fieldDefs]
-fieldnames.insert(0, 'EMPLOYEE UID')
-
-def get_payrun_records(cxn, ien, cp_nbr):
-    query = DdrLister()
-    query.file = '459.01'
-    query.iens = ',%s,' % (ien,)
-    query.fields = ';'.join(fields)
-    query.index = 'B'
-    query.screen = 'I $P(^(0),U,10)="%s"' % (cp_nbr,)
-    query.fieldnames = fieldnames
-    return query.find(cxn)
-
-def get_multi_payrun_records(cxn, ien, cp_nbrs):
-    rex = []
-    for cp in cp_nbrs:
-        data = get_payrun_records(cxn, ien, cp)
-        rex.append({'cp': cp, 'data': data})
-    return rex
-
-def get_payrun(cxn, cp_nbrs, ien=None):
-    if ien is None:
-        pp = get_latest_pay_period(cxn)
-    else:
-        pp = get_pay_period(cxn, ien)
-    rex = get_multi_payrun_records(cxn, pp['ien'], cp_nbrs)
-    return {
-        'pay_period': pp,
-        'records': rex
-    }

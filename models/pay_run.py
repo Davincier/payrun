@@ -8,7 +8,8 @@ class PayRun(object):
 
     def __init__(self, db, dct):
         self.db = db
-        self.id = dct['_id']
+        if '_id' in dct:
+            self.id = dct['_id']
         self.tag = dct['tag']
         if 'diffs' in dct:
             self.diffs = dct['diffs']
@@ -58,6 +59,11 @@ class PayRun(object):
             pp = 26
             fy -= 1
         return PayRun.make_tag(fy, pp, self.cp)
+
+    @staticmethod
+    def pay_period(tag):
+        parts = tag.split('-')
+        return '%02d-%02d' % (parts[0], parts[1])
 
     def make_diffs(self, ):
         query = {'PAYRUN': self.previous_tag()}

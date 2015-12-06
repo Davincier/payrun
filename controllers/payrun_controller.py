@@ -12,7 +12,7 @@ class PayrunController(object):
         self.payrun_selected(self.ui.payrunList.item(0))
         self.ui.payrunList.clicked.connect(self.payrun_selected)
         self.ui.employeeList.clicked.connect(self.employee_selected)
-        # self.ui.addRunButton.clicked.connect(self.add_next_run)
+        self.ui.addRunButton.clicked.connect(self.add_next_run)
 
     def load_payruns(self, lst):
         self.payruns = PayRun.get_runs(self.db)
@@ -59,12 +59,21 @@ class PayrunController(object):
     def runit(self):
         self.widget.show()
 
-    # def add_next_run(self, db):
-    #     latest_run_tag = self.ui.payrunList.item(0).text()
-    #     tmp = self.parse_payrun_str(latest_run)
-    #     run_id = PayRun.get_next_payrun_id(tmp['fy'], tmp['pp'])
-    #
-    #     vc = VistaController()
-    #     run = vc.get_payrun(run_id)
-    #
-    #     PayRun.save_run(db, run_id, run)
+    def add_next_run(self, db):
+        latest_run_tag = self.ui.payrunList.item(0).text()
+        latest_run = self.get_run(latest_run_tag)
+        run_tag = latest_run.next_tag()
+        pay_period = PayRun.pay_period(run_tag)
+
+        from controllers import VistaController
+        vc = VistaController()
+        run = vc.get_payrun(pay_period)
+
+        for cp in run:
+            tag = '%s-%s' % (pay_period, cp)
+            for rec in cp['data']:
+                rec['PAYRUN'] = tag
+                db.payrun_records.insert(rec)
+            payrun = PayRun(self.db, {'tag': tag})
+            payrun.make_diffs()
+            payrun.save()

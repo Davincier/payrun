@@ -24,7 +24,6 @@ class VistaController(object):
         }
         self.cps = data['control_points']
 
-
     def _connect(self):
         svr = RpcServer(self.host, self.port)
         svr.open()
@@ -35,9 +34,9 @@ class VistaController(object):
         visitor.visit(svr)
         return svr
 
-    def get_payrun(self, run_id):
+    def get_payrun(self, pay_period):
         cxn = self._connect()
-        ien = get_pay_run_ien(cxn, run_id)
+        ien = get_pay_run_ien(cxn, pay_period)
         run = get_multi_payrun_records(cxn, ien, self.cps)
         cxn.close()
         return run

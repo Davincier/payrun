@@ -63,11 +63,8 @@ class DdrLister(object):
 
     def find(self, cxn):
         self._prepare()
-        if type(cxn) is str:
-            self.records = self.load_from_file(cxn)
-        else:
-            self.response = cxn.execute(self.rpc)
-            self._load(self.response)
+        self.response = cxn.execute(self.rpc)
+        self._load(self.response)
         return self.records
 
     def _prepare(self):
@@ -132,9 +129,3 @@ class DdrLister(object):
                 named_records.append(dict(list(zip(self.fieldnames, rec))))
             self.records = named_records
         return self.records
-
-    def load_from_file(self, filename):
-        f = open(filename, 'rb')
-        response = f.read()
-        f.close()
-        return self._load(response.decode())
