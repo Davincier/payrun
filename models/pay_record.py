@@ -23,6 +23,8 @@ class PayRecord(object):
     def get_diffs(previous_rec, current_rec):
         diffs = []
         for field in current_rec:
+            if field in ['_id', 'PAYRUN']:
+                continue
             if current_rec[field] != previous_rec[field]:
                 diffs.append({
                     'field_name': field,

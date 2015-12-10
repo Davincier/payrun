@@ -11,6 +11,34 @@ class FmsPayrun(object):
         self.pay_period = pay_period
         if cxn:
             self.ien = self._get_ien()
+        self.fieldDefs = [
+            ('.01E', 'EMPLOYEE', self._no_convert),
+            ('3', 'GRADE', self._convert_to_int),
+            ('4', 'STEP', self._convert_to_int),
+            ('10', 'FTE', self._fte_convert),
+            ('6', '8B NORMAL HOURS', self._convert_to_int),
+            ('11', 'NORMAL HOURS', self._convert_to_int),
+            ('29', 'OASDI TAX VA SHARE CPPD', self._convert_to_float),
+            ('34', 'FEGLI VA SHARE CPPD', self._convert_to_float),
+            ('37', 'HEALTH BENEFITS VA SHARE CPPD', self._convert_to_float),
+            ('40', 'RETIREMENT VA SHARE CPPD', self._convert_to_float),
+            ('61', 'TSP CSF GOV BASIC CONTRIB', self._convert_to_float),
+            ('63', 'TSP GSF GOV BASIC CONTRIB', self._convert_to_float),
+            ('64', 'TSP CSF GOV MATCH CONTRIB', self._convert_to_float),
+            ('66', 'TSP GSF GOV MATCH CONTRIB', self._convert_to_float),
+            ('85', 'BASE PAY CPPD', self._convert_to_float),
+            ('88', 'HOLIDAY AMT', self._convert_to_float),
+            ('94', 'OVERTIME AMT CPPD', self._convert_to_float),
+            ('118', 'GROSS PAY PLUS BENEFITS CPPD', self._convert_to_float),
+            ('131', 'OVERTIME HOURS WK 1', self._convert_to_float),
+            ('132', 'OVERTIME HOURS WK 2', self._convert_to_float),
+            ('133', 'OVERTIME AMT WK 1', self._convert_to_float),
+            ('134', 'OVERTIME AMT WK 2', self._convert_to_float),
+            ('135', 'HRS EXCESS 8 DAY WK 1', self._convert_to_int),
+            ('136', 'HRS EXCESS 8 DAY WK 2', self._convert_to_int),
+            ('137', 'HRS EXCESS 8 DAY AMT WK 1', self._convert_to_float),
+            ('138', 'HRS EXCESS 8 DAY AMT WK 2', self._convert_to_float)
+        ]
 
     def __str__(self):
         return self.pay_period
@@ -26,22 +54,41 @@ class FmsPayrun(object):
         query.fields = self._get_vista_field_str()
         query.index = 'B'
         query.screen = 'I $P(^(0),U,10)="%s"' % (cp,)
+        query.fieldnames = self._get_fieldnames()
         return query
 
-    def get(self, cps):
+    def get_records(self, cps):
         rex = {}
         for cp in cps:
             query = self._build_query(cp)
             rex[cp] = query.find(self.cxn)
+            for rec in rex[cp]:
+                self._convert_fields(rec)
         return rex
 
     def _get_vista_field_str(self):
-        return ';'.join([f[0] for f in fieldDefs])
+        return ';'.join([f[0] for f in self.fieldDefs])
 
     def _get_fieldnames(self):
-        fieldnames = [f[1] for f in fieldDefs]
+        fieldnames = [f[1] for f in self.fieldDefs]
         fieldnames.insert(0, 'EMPLOYEE UID')
         return fieldnames
+
+    def _convert_fields(self, rec):
+        for field in self.fieldDefs:
+            rec[field[1]] = field[2](rec[field[1]])
+
+    def _no_convert(self, field):
+        return field
+
+    def _fte_convert(self, field):
+        return int(float(field) * 100)
+
+    def _convert_to_int(self, field):
+        return int(field) if field else None
+
+    def _convert_to_float(self, field):
+        return float(field) if field else None
 
     # def get_pay_period(self):
     #     arg = '$G(^PRST(459,%s,0))' % self.ien
@@ -58,33 +105,3 @@ class FmsPayrun(object):
     # def get_latest_pay_period(self):
     #     hdr = get_global_header(self.cxn, 'PRST(459')
     #     return self.get_pay_period(self.cxn, hdr['last_ien'])
-
-
-fieldDefs = [
-    ('.01E', 'EMPLOYEE'),
-    ('3', 'GRADE'),
-    ('4', 'STEP'),
-    ('10', 'FTE'),
-    ('6', '8B NORMAL HOURS'),
-    ('11', 'NORMAL HOURS'),
-    ('29', 'OASDI TAX VA SHARE CPPD'),
-    ('34', 'FEGLI VA SHARE CPPD'),
-    ('37', 'HEALTH BENEFITS VA SHARE CPPD'),
-    ('40', 'RETIREMENT VA SHARE CPPD'),
-    ('61', 'TSP CSF GOV BASIC CONTRIB'),
-    ('63', 'TSP GSF GOV BASIC CONTRIB'),
-    ('64', 'TSP CSF GOV MATCH CONTRIB'),
-    ('66', 'TSP GSF GOV MATCH CONTRIB'),
-    ('85', 'BASE PAY CPPD'),
-    ('88', 'HOLIDAY AMT'),
-    ('94', 'OVERTIME AMT CPPD'),
-    ('118', 'GROSS PAY PLUS BENEFITS CPPD'),
-    ('131', 'OVERTIME HOURS WK 1'),
-    ('132', 'OVERTIME HOURS WK 2'),
-    ('133', 'OVERTIME AMT WK 1'),
-    ('134', 'OVERTIME AMT WK 2'),
-    ('135', 'HRS EXCESS 8 DAY WK 1'),
-    ('136', 'HRS EXCESS 8 DAY WK 2'),
-    ('137', 'HRS EXCESS 8 DAY AMT WK 1'),
-    ('138', 'HRS EXCESS 8 DAY AMT WK 2')
-]

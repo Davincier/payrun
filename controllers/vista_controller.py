@@ -1,5 +1,5 @@
 from pyvista.rpc import RpcServer, RpcVisitor
-from pyvista.fms.payrun import get_pay_run_ien, get_multi_payrun_records
+from pyvista.fms import FmsPayrun
 
 
 class VistaController(object):
@@ -34,9 +34,9 @@ class VistaController(object):
         visitor.visit(svr)
         return svr
 
-    def get_payrun(self, pay_period):
+    def get_payrun_records(self, pay_period):
         cxn = self._connect()
-        ien = get_pay_run_ien(cxn, pay_period)
-        run = get_multi_payrun_records(cxn, ien, self.cps)
+        run = FmsPayrun(cxn, pay_period)
+        rex = run.get_records(self.cps)
         cxn.close()
-        return run
+        return rex

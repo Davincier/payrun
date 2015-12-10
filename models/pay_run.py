@@ -66,14 +66,26 @@ class PayRun(object):
         return '%02d-%02d' % (parts[0], parts[1])
 
     def make_diffs(self, ):
-        query = {'PAYRUN': self.previous_tag()}
-        prev_rex = self.db.payrun_records.find(query)
-        diffs = {}
-        for prev_rec, current_rec in zip(prev_rex, self.rex):
+        from models import PayRecord
+        prev_rex = self._get_previous_records()
+        self.diffs = {}
+        if not prev_rex:
+            return
+        for current_rec in self.rex:
+            prev_rec = prev_rex[current_rec['EMPLOYEE UID']]
+            if not prev_rec:
+                continue
             rec_diffs = PayRecord.get_diffs(prev_rec, current_rec)
             if rec_diffs:
-                diffs[current_rec['EMPLOYEE']] = rec_diffs
-        self.diffs = diffs
+                self.diffs[current_rec['EMPLOYEE']] = rec_diffs
+
+    def _get_previous_records(self):
+        query = {'PAYRUN': self.previous_tag()}
+        rex = self.db.payrun_records.find(query)
+        result = {}
+        for rec in rex:
+            result[rec['EMPLOYEE UID']] = rec
+        return result
 
     def save(self):
         self.db.payruns.insert({'tag': self.tag, 'diffs': self.diffs})

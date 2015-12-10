@@ -1,36 +1,27 @@
-from PyQt5.QtWidgets import QListWidgetItem
 from models import PayRun, PayRecord
 from views import PayrunWidget, PayDiffsWidget
 
 
 class PayrunController(object):
     def __init__(self, db):
-        self.widget = PayrunWidget()
-        self.ui = self.widget.ui
+        self.widget = PayrunWidget(self)
+        if not db:
+            return
         self.db = db
-        self.load_payruns(self.ui.payrunList)
-        self.payrun_selected(self.ui.payrunList.item(0))
-        self.ui.payrunList.clicked.connect(self.payrun_selected)
-        self.ui.employeeList.clicked.connect(self.employee_selected)
-        self.ui.addRunButton.clicked.connect(self.add_next_run)
+        self.load_payruns()
 
-    def load_payruns(self, lst):
+    def load_payruns(self):
         self.payruns = PayRun.get_runs(self.db)
-        for payrun in self.payruns:
-            lst.addItem(QListWidgetItem(payrun.tag))
-        lst.item(0).setSelected(True)
+        if self.payruns:
+            self.widget.load_payruns(self.payruns)
+            self.widget.select_payrun(0)
 
-    def payrun_selected(self, item):
-        if type(item) is QListWidgetItem:
-            run_tag = item.text()
-        else:
-            run_tag = str(item.data())
-
+    def payrun_selected(self, run_tag):
         self.run = self.get_run(run_tag)
         self.run.get_children()
 
         self.load_employees()
-        self.ui.payrunGrid.addWidget(PayDiffsWidget(self.run.diffs), 1, 1, 4, 1)
+        self.widget.add_diffs_widget(PayDiffsWidget(self.run.diffs))
 
     def get_run(self, tag):
         xx = [x for x in self.payruns if x.tag == tag]
@@ -39,16 +30,11 @@ class PayrunController(object):
     def load_employees(self):
         if not self.run:
             return
+        employee_names = [rec.employee.name for rec in self.run.rex]
+        self.widget.load_employees(employee_names)
 
-        lst = self.ui.employeeList
-        lst.clear()
-
-        for rec in self.run.rex:
-            lst.addItem(QListWidgetItem(rec.employee.name))
-        lst.item(0).setSelected(True)
-
-    def employee_selected(self, item):
-        rec = PayRecord.get_for_employee(self.run.rex, str(item.data()))
+    def employee_selected(self, employee_name):
+        rec = PayRecord.get_for_employee(self.run.rex, employee_name)
         if not rec:
             return
 
@@ -59,21 +45,22 @@ class PayrunController(object):
     def runit(self):
         self.widget.show()
 
-    def add_next_run(self, db):
-        latest_run_tag = self.ui.payrunList.item(0).text()
+    def add_run_clicked(self, latest_run_tag):
         latest_run = self.get_run(latest_run_tag)
         run_tag = latest_run.next_tag()
         pay_period = PayRun.pay_period(run_tag)
 
         from controllers import VistaController
         vc = VistaController()
-        run = vc.get_payrun(pay_period)
+        self.save_run(vc.get_payrun_records(pay_period))
 
+    def save_run(self, pay_period, run):
         for cp in run:
             tag = '%s-%s' % (pay_period, cp)
-            for rec in cp['data']:
+            for rec in run[cp]:
                 rec['PAYRUN'] = tag
-                db.payrun_records.insert(rec)
+                self.db.payrun_records.insert(rec)
             payrun = PayRun(self.db, {'tag': tag})
+            payrun.rex = run[cp]
             payrun.make_diffs()
             payrun.save()

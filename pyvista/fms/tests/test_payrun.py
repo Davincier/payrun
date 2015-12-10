@@ -100,7 +100,7 @@ class TestPayrun(unittest.TestCase):
         ])
 
         run = FmsPayrun(cxn, '15-22')
-        rex = run.get(['015', '016'])
+        rex = run.get_records(['015', '016'])
         self.assertEqual(cxn.execute.call_args_list, rpcs)
         self.assertEqual(len(rex), 2)
         self.assertEqual(len(rex['015']), 39)
