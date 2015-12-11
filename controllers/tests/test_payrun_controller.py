@@ -50,10 +50,46 @@ class TestPayrunController(unittest.TestCase):
         response560_016 = f.read().decode()
         f.close()
 
+        f = open('../../pyvista/fms/tests/run616_015.txt', 'rb')
+        response616_015 = f.read().decode()
+        f.close()
+
+        f = open('../../pyvista/fms/tests/run616_016.txt', 'rb')
+        response616_016 = f.read().decode()
+        f.close()
+
+        f = open('../../pyvista/fms/tests/run617_015.txt', 'rb')
+        response617_015 = f.read().decode()
+        f.close()
+
+        f = open('../../pyvista/fms/tests/run617_016.txt', 'rb')
+        response617_016 = f.read().decode()
+        f.close()
+
+        f = open('../../pyvista/fms/tests/run618_015.txt', 'rb')
+        response618_015 = f.read().decode()
+        f.close()
+
+        f = open('../../pyvista/fms/tests/run618_016.txt', 'rb')
+        response618_016 = f.read().decode()
+        f.close()
+
+        f = open('../../pyvista/fms/tests/run619_015.txt', 'rb')
+        response619_015 = f.read().decode()
+        f.close()
+
+        f = open('../../pyvista/fms/tests/run619_016.txt', 'rb')
+        response619_016 = f.read().decode()
+        f.close()
+
         cxn = RpcServer(None, 0)
         cxn.execute = MagicMock(side_effect=[
             '559', response559_015, response559_016,
-            '560', response560_015, response560_016
+            '560', response560_015, response560_016,
+            '616', response616_015, response616_016,
+            '617', response617_015, response617_016,
+            '618', response618_015, response618_016,
+            '619', response619_015, response619_016
         ])
 
         fms_run = FmsPayrun(cxn, '13-15')
@@ -63,6 +99,22 @@ class TestPayrunController(unittest.TestCase):
         fms_run = FmsPayrun(cxn, '13-16')
         my_run = fms_run.get_records(['015', '016'])
         self.controller.save_run('13-16', my_run)
+
+        fms_run = FmsPayrun(cxn, '15-20')
+        my_run = fms_run.get_records(['015', '016'])
+        self.controller.save_run('15-20', my_run)
+
+        fms_run = FmsPayrun(cxn, '15-21')
+        my_run = fms_run.get_records(['015', '016'])
+        self.controller.save_run('15-21', my_run)
+
+        fms_run = FmsPayrun(cxn, '15-22')
+        my_run = fms_run.get_records(['015', '016'])
+        self.controller.save_run('15-22', my_run)
+
+        fms_run = FmsPayrun(cxn, '15-23')
+        my_run = fms_run.get_records(['015', '016'])
+        self.controller.save_run('15-23', my_run)
 
 
 

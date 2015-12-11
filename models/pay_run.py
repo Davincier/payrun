@@ -72,9 +72,10 @@ class PayRun(object):
         if not prev_rex:
             return
         for current_rec in self.rex:
-            prev_rec = prev_rex[current_rec['EMPLOYEE UID']]
-            if not prev_rec:
+            key = current_rec['EMPLOYEE UID']
+            if not key in prev_rex:
                 continue
+            prev_rec = prev_rex[key]
             rec_diffs = PayRecord.get_diffs(prev_rec, current_rec)
             if rec_diffs:
                 self.diffs[current_rec['EMPLOYEE']] = rec_diffs
