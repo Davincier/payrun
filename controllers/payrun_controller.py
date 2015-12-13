@@ -18,7 +18,8 @@ class PayrunController(object):
 
     def payrun_selected(self, run_tag):
         self.run = self.get_run(run_tag)
-        self.run.get_children()
+        if not hasattr(self.run, 'rex'):
+            self.run.get_children()
 
         self.load_employees()
         self.widget.add_diffs_widget(PayDiffsWidget(self.run.diffs))
