@@ -14,5 +14,5 @@ setup(
             ]
         }
     },
-    requires=['PyQt5']
+    requires=['PyQt5', 'peewee']
 )

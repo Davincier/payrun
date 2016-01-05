@@ -8,6 +8,7 @@ from controllers import PayrunController
 
 app = QApplication([])
 
+
 class TestPayrunController(unittest.TestCase):
 
     def setUp(self):

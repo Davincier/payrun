@@ -44,9 +44,8 @@ class RpcServer(object):
         self.is_open = True
 
     def execute(self, rpc):
-        response = f.read()
-        f.close()
-        return response.decode()
+        self._send(rpc)
+        return self._recv()
 
     def _send(self, rpc):
         try:

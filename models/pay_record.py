@@ -1,18 +1,38 @@
-class PayRecord(object):
+from peewee import *
+from .base_model import BaseModel
+from models import PayRun, Employee
 
-    def __init__(self, dct):
-        from models import PayEmployee
-        self.employee = PayEmployee(
-            dct['EMPLOYEE'],
-            dct['GRADE'],
-            dct['STEP'],
-            dct['FTE']
-        )
-        self.rec = dct
-        del self.rec['EMPLOYEE']
-        del self.rec['GRADE']
-        del self.rec['STEP']
-        del self.rec['FTE']
+
+class PayRecord(BaseModel):
+
+    payrun = ForeignKeyField(PayRun, related_name='records')
+    employee = ForeignKeyField(Employee, related_name='payrecords')
+    normal_hours_8b = IntegerField()
+    normal_hours = IntegerField()
+    oasdi_tax_va_share_cppd = DecimalField()
+    fegli_va_share_cppd = DecimalField()
+    health_benefits_va_share_cppd = DecimalField()
+    retirement_va_share_cppd = DecimalField()
+    tsp_csf_gov_basic_contrib = DecimalField()
+    tsp_gsf_gov_basic_contrib = DecimalField()
+    tsp_csf_gov_match_contrib = DecimalField()
+    tsp_gsf_gov_match_contrib = DecimalField()
+    base_pay_cppd = DecimalField()
+    holiday_amt = DecimalField()
+    overtime_amt_cppd = DecimalField()
+    gross_pay_plus_benefits_cppd = DecimalField()
+    overtime_hours_wk_1 = DecimalField()
+    overtime_hours_wk_2 = DecimalField()
+    overtime_amt_wk_1 = DecimalField()
+    overtime_amt_wk_2 = DecimalField()
+    hrs_excess_8_day_wk_1 = DecimalField()
+    hrs_excess_8_day_wk_2 = DecimalField()
+    hrs_excess_8_day_amt_wk_1 = DecimalField()
+    hrs_excess_8_day_amt_wk_2 = DecimalField()
+    notes = TextField()
+
+    class Meta:
+        db_table = 'payrecords'
 
     @staticmethod
     def get_for_employee(rex, name):
