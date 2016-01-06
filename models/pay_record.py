@@ -35,6 +35,11 @@ class PayRecord(BaseModel):
         db_table = 'payrecords'
 
     @staticmethod
+    def batch_save(records):
+        with BaseModel.database.atomic():
+            PayRecord.insert_many()
+
+    @staticmethod
     def get_for_employee(rex, name):
         xx = [x for x in rex if x.employee.name == name]
         return xx[0] if xx else None

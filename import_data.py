@@ -15,75 +15,72 @@ def import_data():
     for ien, pp in runs.items():
         for cp in ['015', '016']:
             run = make_run(ien, pp, cp)
-            run.save()
 
             filename = path + ien + '_' + cp + '.txt'
             f = open(filename)
             dta = f.readlines()
             f.close()
 
-            emp = None
-            rex = []
             for line in dta:
                 if line[0].isdigit():
-                    emp = make_emp(line)
-                    emp.cp = cp
-                    emp.save()
-                    rex.append(make_rec(line.rstrip()))
-            emp.add_records(rex)
-            run.add_records(rex)
-    pass
+                    emp = make_emp(line, cp)
+                    make_rec(line.rstrip(), run.id, emp.id)
 
 
 def make_run(ien, pp, cp):
-    run = PayRun()
-    run.ien = ien
     parts = pp.split('-')
-    run.fy = parts[0]
-    run.pp = parts[1]
-    run.cp = cp
-    run.id = PayRecord.get_id(ien)
+    run = PayRun.create(
+        ien=ien,
+        fy=int(parts[0]),
+        pp=int(parts[1]),
+        cp=cp
+    )
     return run
 
 
-def make_emp(line):
+def make_emp(line, cp):
     flds = line.split('^')
-    emp = Employee()
-    emp.dfn = flds[0]
-    emp.name = flds[1]
-    emp.grade = int(flds[2])
-    emp.step = int(flds[3])
-    emp.fte = int(float(flds[4]) * 100)
-    emp.id = Employee.get_id(emp.name)
+    if Employee.has_record(flds[1]):
+        return Employee.get_by_name(flds[1])
+    emp = Employee.create(
+        dfn=flds[0],
+        name=flds[1],
+        grade=int(flds[2]),
+        step=int(flds[3]),
+        fte=int(float(flds[4])),
+        cp=cp
+    )
     return emp
 
 
-def make_rec(line):
+def make_rec(line, payrun_id, employee_id):
     flds = line.split('^')
-    rec = PayRecord()
-    rec.normal_hours_8b = int(flds[5])
-    rec.normal_hours = int(flds[6])
-    rec.oasdi_tax_va_share_cppd = to_float(flds[7])
-    rec.fegli_va_share_cppd = to_float(flds[8])
-    rec.health_benefits_va_share_cppd = to_float(flds[9])
-    rec.retirement_va_share_cppd = to_float(flds[10])
-    rec.tsp_csf_gov_basic_contrib = to_float(flds[11])
-    rec.tsp_gsf_gov_basic_contrib = to_float(flds[12])
-    rec.tsp_csf_gov_match_contrib = to_float(flds[13])
-    rec.tsp_gsf_gov_match_contrib = to_float(flds[14])
-    rec.base_pay_cppd = to_float(flds[15])
-    rec.holiday_amt = to_float(flds[16])
-    rec.overtime_amt_cppd = to_float(flds[17])
-    rec.gross_pay_plus_benefits_cppd = to_float(flds[18])
-    rec.overtime_hours_wk_1 = to_float(flds[19])
-    rec.overtime_hours_wk_2 = to_float(flds[20])
-    rec.overtime_amt_wk_1 = to_float(flds[21])
-    rec.overtime_amt_wk_2 = to_float(flds[22])
-    rec.hrs_excess_8_day_wk_1 = to_float(flds[23])
-    rec.hrs_excess_8_day_wk_2 = to_float(flds[24])
-    rec.hrs_excess_8_day_amt_wk_1 = to_float(flds[25])
-    rec.hrs_excess_8_day_amt_wk_2 = to_float(flds[26])
-    return rec
+    rec = PayRecord.create(
+        payrun=payrun_id,
+        employee=employee_id,
+        normal_hours_8b=int(flds[5]),
+        normal_hours=int(flds[6]),
+        oasdi_tax_va_share_cppd=to_float(flds[7]),
+        fegli_va_share_cppd=to_float(flds[8]),
+        health_benefits_va_share_cppd=to_float(flds[9]),
+        retirement_va_share_cppd=to_float(flds[10]),
+        tsp_csf_gov_basic_contrib=to_float(flds[11]),
+        tsp_gsf_gov_basic_contrib=to_float(flds[12]),
+        tsp_csf_gov_match_contrib=to_float(flds[13]),
+        tsp_gsf_gov_match_contrib=to_float(flds[14]),
+        base_pay_cppd=to_float(flds[15]),
+        holiday_amt=to_float(flds[16]),
+        overtime_amt_cppd=to_float(flds[17]),
+        gross_pay_plus_benefits_cppd=to_float(flds[18]),
+        overtime_hours_wk_1=to_float(flds[19]),
+        overtime_hours_wk_2=to_float(flds[20]),
+        overtime_amt_wk_1=to_float(flds[21]),
+        overtime_amt_wk_2=to_float(flds[22]),
+        hrs_excess_8_day_wk_1=to_float(flds[23]),
+        hrs_excess_8_day_wk_2=to_float(flds[24]),
+        hrs_excess_8_day_amt_wk_1=to_float(flds[25]),
+        hrs_excess_8_day_amt_wk_2=to_float(flds[26])
+    )
 
 
 def to_float(value):
