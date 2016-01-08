@@ -15,7 +15,7 @@ class PayrunWidget(QWidget):
     def load_payruns(self, payruns):
         self.ui.payrunList.clear()
         for payrun in payruns:
-            self.ui.payrunList.addItem(QListWidgetItem(payrun.tag))
+            self.ui.payrunList.addItem(QListWidgetItem(str(payrun)))
 
     def select_payrun(self, index):
         self.ui.payrunList.item(index).setSelected(True)
@@ -23,10 +23,10 @@ class PayrunWidget(QWidget):
 
     def payrun_selected(self, item):
         if type(item) is QListWidgetItem:
-            run_tag = item.text()
+            tag_str = item.text()
         else:
-            run_tag = str(item.data())
-        self.controller.payrun_selected(run_tag)
+            tag_str = str(item.data())
+        self.controller.payrun_selected(tag_str)
 
     def load_employees(self, employee_names):
         self.ui.employeeList.clear()

@@ -1,61 +1,59 @@
+from app import db
 from models import PayRun, PayRecord, PayDiff, Employee
 
 
 def import_data():
     path = 'c:\\bench\\payrun\\pyvista\\fms\\tests\\run'
-    runs = {
-        '559': '13-15',
-        '560': '13-16',
-        '616': '15-20',
-        '617': '15-21',
-        '618': '15-22',
-        '619': '15-23'
-    }
+    runs = [
+        {'ien': '559', 'fy': 13, 'pp': 15, 'cp': '015'},
+        {'ien': '559', 'fy': 13, 'pp': 15, 'cp': '016'},
+        {'ien': '560', 'fy': 13, 'pp': 16, 'cp': '015'},
+        {'ien': '560', 'fy': 13, 'pp': 16, 'cp': '016'},
+        {'ien': '616', 'fy': 15, 'pp': 20, 'cp': '015'},
+        {'ien': '616', 'fy': 15, 'pp': 20, 'cp': '016'},
+        {'ien': '617', 'fy': 15, 'pp': 21, 'cp': '015'},
+        {'ien': '617', 'fy': 15, 'pp': 21, 'cp': '016'},
+        {'ien': '618', 'fy': 15, 'pp': 22, 'cp': '015'},
+        {'ien': '618', 'fy': 15, 'pp': 22, 'cp': '016'},
+        {'ien': '619', 'fy': 15, 'pp': 23, 'cp': '015'},
+        {'ien': '619', 'fy': 15, 'pp': 23, 'cp': '016'}
+    ]
+    with db.atomic():
+        PayRun.insert_many(runs).execute()
 
-    for ien, pp in runs.items():
-        for cp in ['015', '016']:
-            run = make_run(ien, pp, cp)
+    for run in PayRun.select():
 
-            filename = path + ien + '_' + cp + '.txt'
-            f = open(filename)
-            dta = f.readlines()
-            f.close()
+        filename = path + run.ien + '_' + run.cp + '.txt'
+        f = open(filename)
+        dta = f.readlines()
+        f.close()
 
-            for line in dta:
-                if line[0].isdigit():
-                    emp = make_emp(line, cp)
-                    make_rec(line.rstrip(), run.id, emp.id)
-
-
-def make_run(ien, pp, cp):
-    parts = pp.split('-')
-    run = PayRun.create(
-        ien=ien,
-        fy=int(parts[0]),
-        pp=int(parts[1]),
-        cp=cp
-    )
-    return run
+        for line in dta:
+            if line[0].isdigit():
+                emp = make_emp(line, run.cp)
+                rec = make_rec(line.rstrip(), run.id, emp.id)
+                prev_run_id = run.get_previous_run_id()
+                if prev_run_id:
+                    rec.make_diffs(prev_run_id)
 
 
 def make_emp(line, cp):
     flds = line.split('^')
     if Employee.has_record(flds[1]):
         return Employee.get_by_name(flds[1])
-    emp = Employee.create(
+    return Employee.create(
         dfn=flds[0],
         name=flds[1],
         grade=int(flds[2]),
         step=int(flds[3]),
-        fte=int(float(flds[4])),
+        fte=int(float(flds[4]) * 100),
         cp=cp
     )
-    return emp
 
 
 def make_rec(line, payrun_id, employee_id):
     flds = line.split('^')
-    rec = PayRecord.create(
+    return PayRecord.create(
         payrun=payrun_id,
         employee=employee_id,
         normal_hours_8b=int(flds[5]),

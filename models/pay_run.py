@@ -1,5 +1,8 @@
+from collections import namedtuple
 from peewee import *
 from .base_model import BaseModel
+
+PayRunTag = namedtuple('PayRunTag', ['fy', 'pp', 'cp'])
 
 
 class PayRun(BaseModel):
@@ -20,11 +23,9 @@ class PayRun(BaseModel):
 
     @staticmethod
     def get_all():
-        return [
-            rec for rec in PayRun.select().order_by(
-                PayRun.fy.desc(), PayRun.pp.desc(), PayRun.cp
-            )
-        ]
+        return PayRun.select().order_by(
+            PayRun.fy.desc(), PayRun.pp.desc(), PayRun.cp
+        )
 
     @staticmethod
     def get_one(run_id):
@@ -35,61 +36,62 @@ class PayRun(BaseModel):
         qry = PayRun.select().where(PayRun.ien == ien)
         return qry.get().id if qry.exists() else None
 
-    def add_records(self, records):
-        for rec in records:
-            rec.payrun = self.id
-        with self._meta.database.atomic():
-            PayRecord.insert_many(records)
-
-    @staticmethod
-    def make_tag(fy, pp, cp):
-        return '%02d-%02d-%s' % (fy, pp, cp)
-
-    def next_tag(self):
-        fy = self.fy
-        pp = self.pp + 1
-        if pp > 26:
-            pp = 1
-            fy += 1
-        return PayRun.make_tag(fy, pp, self.cp)
-
     def previous_tag(self):
         fy = self.fy
         pp = self.pp - 1
         if pp == 0:
             pp = 26
             fy -= 1
-        return PayRun.make_tag(fy, pp, self.cp)
+        return PayRunTag(fy=fy, pp=pp, cp=self.cp)
 
     @staticmethod
-    def pay_period(tag):
-        parts = tag.split('-')
-        return '%02d-%02d' % (parts[0], parts[1])
+    def pay_period(tag_str):
+        tag = PayRun.get_tag(tag_str)
+        return '%02d-%02d' % (tag.fy, tag.pp)
 
-    def make_diffs(self, ):
+    @staticmethod
+    def get_tag(tag_str):
+        parts = tag_str.split('-')
+        return PayRunTag(fy=parts[0], pp=parts[1], cp=parts[2])
+
+    def make_diffs(self):
+        from models import PayRecord, PayDiff
+        from app import db
+        prev_rex = self._get_previous_records()
+        diffs = {}
+        if not prev_rex:
+            return
+        print(str(self))
+        for current_rec in self.records:
+            # print(current_rec.employee.name)
+            qry = prev_rex.select().where(PayRecord.employee == current_rec.employee)
+            if not qry.exists():
+                continue
+            rec_diffs = PayRecord.make_diffs(prev_rex.get(), current_rec)
+            if rec_diffs:
+                # with db.atomic():
+                #     PayDiff.insert_many(rec_diffs).execute()
+                diffs[current_rec.employee.id] = rec_diffs
         pass
-        # from models import PayRecord
-        # prev_rex = self._get_previous_records()
-        # self.diffs = {}
-        # if not prev_rex:
-        #     return
-        # for current_rec in self.rex:
-        #     key = current_rec['EMPLOYEE UID']
-        #     if not key in prev_rex:
-        #         continue
-        #     prev_rec = prev_rex[key]
-        #     rec_diffs = PayRecord.get_diffs(prev_rec, current_rec)
-        #     if rec_diffs:
-        #         self.diffs[current_rec['EMPLOYEE']] = rec_diffs
+
+    def get_previous_run_id(self):
+        prev_tag = self.previous_tag()
+        qry = PayRun.select().where(
+            (PayRun.fy == prev_tag.fy) &
+            (PayRun.pp == prev_tag.pp) &
+            (PayRun.cp == prev_tag.cp)
+        )
+        if not qry.exists():
+            return None
+        return qry.get().id
 
     def _get_previous_records(self):
-        pass
-        # query = {'PAYRUN': self.previous_tag()}
-        # rex = self.db.payrun_records.find(query)
-        # result = {}
-        # for rec in rex:
-        #     result[rec['EMPLOYEE UID']] = rec
-        # return result
+        prev_ien = int(self.ien) - 1
+        qry = PayRun.select().where((PayRun.ien == prev_ien) & (PayRun.cp == self.cp))
+        if not qry.exists():
+            return None
+        prev_run = qry.get()
+        return prev_run.records
 
     # def save(self):
         # self.db.payruns.insert({'tag': self.tag, 'diffs': self.diffs})

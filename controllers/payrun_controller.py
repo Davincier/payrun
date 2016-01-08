@@ -3,44 +3,44 @@ from views import PayrunWidget, PayDiffsWidget
 
 
 class PayrunController(object):
-    def __init__(self, db):
+    def __init__(self):
         self.widget = PayrunWidget(self)
-        if not db:
-            return
-        self.db = db
+        self.payruns = None
+        self.run = None
         self.load_payruns()
 
     def load_payruns(self):
-        self.payruns = PayRun.get_runs(self.db)
-        if self.payruns:
+        self.payruns = PayRun.get_all()
+        if self.payruns.exists():
             self.widget.load_payruns(self.payruns)
             self.widget.select_payrun(0)
 
-    def payrun_selected(self, run_tag):
-        self.run = self.get_run(run_tag)
-        if not hasattr(self.run, 'rex'):
-            self.run.get_children()
-
+    def payrun_selected(self, tag_str):
+        self.run = self.get_run(tag_str)
         self.load_employees()
-        self.widget.add_diffs_widget(PayDiffsWidget(self.run.diffs))
+        # self.widget.add_diffs_widget(PayDiffsWidget(self.run.diffs))
 
-    def get_run(self, tag):
-        xx = [x for x in self.payruns if x.tag == tag]
-        return xx[0] if xx else None
+    def get_run(self, tag_str):
+        tag = PayRun.get_tag(tag_str)
+        return self.payruns.select().where(
+            (PayRun.fy == tag.fy) &
+            (PayRun.pp == tag.pp) &
+            (PayRun.cp == tag.cp)
+        ).get()
 
     def load_employees(self):
         if not self.run:
             return
-        employee_names = [rec.employee.name for rec in self.run.rex]
+        employee_names = [rec.employee.name for rec in self.run.records]
         self.widget.load_employees(employee_names)
 
     def employee_selected(self, employee_name):
-        rec = PayRecord.get_for_employee(self.run.rex, employee_name)
-        if not rec:
+        from models import Employee
+        rec = self.run.records.select().join(Employee).where(Employee.name == employee_name)
+        if not rec.exists():
             return
-
         from controllers import PayrecController
-        controller = PayrecController(self.run.tag, rec)
+        controller = PayrecController(str(self.run), rec.get())
         controller.runit()
 
     def runit(self):

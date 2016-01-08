@@ -17,6 +17,10 @@ class Employee(BaseModel):
     class Meta:
         db_table = 'employees'
 
+    def __str__(self):
+        return '%s: GRADE %02d, STEP %02d, FTE %d%%' % \
+               (self.name, self.grade, self.step, self.fte)
+
     @staticmethod
     def get_all():
         return [

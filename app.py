@@ -1,16 +1,18 @@
+from peewee import SqliteDatabase
+
+db = SqliteDatabase('c:\\bench\\allocat\\allocat.db')
+diff_fields = [f.name for f in db.get_columns('payrecords')]
+rec_fields = diff_fields[3:-1]
+
+
 def main():
     import sys
-    from pymongo import MongoClient
     from PyQt5.QtWidgets import QApplication
-    import qdarkstyle
     from controllers import PayrunController
 
-    db = MongoClient('localhost', 3001).meteor
-
     app = QApplication(sys.argv)
-    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
 
-    ctrlr = PayrunController(db)
+    ctrlr = PayrunController()
     ctrlr.runit()
     sys.exit(app.exec_())
 

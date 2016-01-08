@@ -34,6 +34,9 @@ class PayRecord(BaseModel):
     class Meta:
         db_table = 'payrecords'
 
+    def __str__(self):
+        return '%s: %s' % (str(self.payrun), self.employee.name)
+
     @staticmethod
     def batch_save(records):
         with BaseModel.database.atomic():
@@ -44,16 +47,25 @@ class PayRecord(BaseModel):
         xx = [x for x in rex if x.employee.name == name]
         return xx[0] if xx else None
 
-    @staticmethod
-    def get_diffs(previous_rec, current_rec):
+    def make_diffs(self, prev_run_id):
+        from app import db, diff_fields
+        from models import PayDiff
+
+        qry = PayRecord.select().where(PayRecord.payrun == prev_run_id)
+        if not qry.exists():
+            return
         diffs = []
-        for field in current_rec:
-            if field in ['_id', 'PAYRUN']:
-                continue
-            if current_rec[field] != previous_rec[field]:
+        prev_rec = qry.get()
+        for field in diff_fields[3:]:
+            curval = getattr(self, field)
+            preval = getattr(prev_rec, field)
+            if curval != preval:
                 diffs.append({
+                    'payrun': self.payrun,
+                    'employee': self.employee,
                     'field_name': field,
-                    'current_amount': current_rec[field],
-                    'previous_amount': previous_rec[field]
+                    'current_amount': curval,
+                    'previous_amount': preval
                 })
-        return diffs
+        with db.atomic():
+            PayDiff.insert_many(diffs).execute()

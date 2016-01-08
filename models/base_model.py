@@ -1,9 +1,7 @@
 import peewee
-from peewee import SqliteDatabase
-
-sqlite_db = SqliteDatabase('c:\\bench\\allocat\\allocat.db')
+from app import db
 
 
 class BaseModel(peewee.Model):
     class Meta:
-        database = sqlite_db
+        database = db
