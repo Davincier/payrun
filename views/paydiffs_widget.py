@@ -10,7 +10,7 @@ class PayDiffsWidget(QWidget):
 
         widget = QWidget()
         diffs_layout = QVBoxLayout()
-        for employee in sorted(diffs):
+        for employee in diffs:
             box = self.create_box(employee, diffs[employee])
             diffs_layout.addWidget(box)
         widget.setLayout(diffs_layout)
@@ -48,10 +48,10 @@ class PayDiffsWidget(QWidget):
         red.setRed(255)
 
         for row, diff in enumerate(diffs):
-            tbl.setItem(row, 0, QTableWidgetItem(diff['field_name']))
-            item1 = QTableWidgetItem(str(diff['current_amount']))
-            item2 = QTableWidgetItem(str(diff['previous_amount']))
-            if self.significant_diff(diff['current_amount'], diff['previous_amount']):
+            tbl.setItem(row, 0, QTableWidgetItem(diff.field_name))
+            item1 = QTableWidgetItem(str(diff.current_amount))
+            item2 = QTableWidgetItem(str(diff.previous_amount))
+            if self.significant_diff(diff.current_amount, diff.previous_amount):
                 item1.setForeground(red)
                 item2.setForeground(red)
             tbl.setItem(row, 1, item1)

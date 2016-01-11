@@ -12,8 +12,12 @@ class PayRun(BaseModel):
     fy = IntegerField()
     pp = IntegerField()
     notes = TextField()
-    # Has many PayRecord (records)
-    # Has many PayRunDiff (diffs)
+
+    # Has many PayRecord (records_query)
+    records = None
+
+    # Has many PayDiff (diffs_query)
+    diffs = None
 
     class Meta:
         db_table = 'payruns'
@@ -23,18 +27,51 @@ class PayRun(BaseModel):
 
     @staticmethod
     def get_all():
-        return PayRun.select().order_by(
+        return [run for run in PayRun.select().order_by(
             PayRun.fy.desc(), PayRun.pp.desc(), PayRun.cp
-        )
+        )]
 
     @staticmethod
     def get_one(run_id):
-        return PayRun.get(PayRun.id == run_id)
+        run = PayRun.get(PayRun.id == run_id)
+        run.add_manys()
+        return run
 
     @staticmethod
-    def get_id(ien):
-        qry = PayRun.select().where(PayRun.ien == ien)
-        return qry.get().id if qry.exists() else None
+    def get_by_tag(tag_str):
+        tag = PayRun.get_tag(tag_str)
+        try:
+            run = PayRun.get(
+                (PayRun.fy == tag.fy) &
+                (PayRun.pp == tag.pp) &
+                (PayRun.cp == tag.cp)
+            )
+            run.add_manys()
+        except PayRun.DoesNotExist:
+            run = None
+        return run
+
+    def get_record_for_employee(self, name):
+        from models import Employee
+        qry = self.records_query.select().join(Employee).where(Employee.name == name)
+        if not qry.exists():
+            return None
+        return qry.get()
+
+    def add_manys(self):
+        self.records = [rec for rec in self.records_query]
+        self.diffs = self._build_diffs()
+
+    def _build_diffs(self):
+        from collections import OrderedDict
+        diff_list = [diff for diff in self.diffs_query]
+        diff_dict = {}
+        for diff in diff_list:
+            if diff.record.employee.name not in diff_dict:
+                diff_dict[diff.record.employee.name] = []
+            diff_dict[diff.record.employee.name].append(diff)
+        od = OrderedDict(sorted(diff_dict.items()))
+        return od
 
     def previous_tag(self):
         fy = self.fy
@@ -52,46 +89,42 @@ class PayRun(BaseModel):
     @staticmethod
     def get_tag(tag_str):
         parts = tag_str.split('-')
-        return PayRunTag(fy=parts[0], pp=parts[1], cp=parts[2])
+        return PayRunTag(fy=int(parts[0]), pp=int(parts[1]), cp=parts[2])
 
     def make_diffs(self):
         from models import PayRecord, PayDiff
         from app import db
         prev_rex = self._get_previous_records()
-        diffs = {}
         if not prev_rex:
             return
-        print(str(self))
         for current_rec in self.records:
-            # print(current_rec.employee.name)
             qry = prev_rex.select().where(PayRecord.employee == current_rec.employee)
             if not qry.exists():
                 continue
-            rec_diffs = PayRecord.make_diffs(prev_rex.get(), current_rec)
+            rec_diffs = PayRecord.get_diffs(prev_rex.get(), current_rec)
             if rec_diffs:
-                # with db.atomic():
-                #     PayDiff.insert_many(rec_diffs).execute()
-                diffs[current_rec.employee.id] = rec_diffs
-        pass
+                with db.atomic():
+                    PayDiff.insert_many(rec_diffs).execute()
 
     def get_previous_run_id(self):
         prev_tag = self.previous_tag()
-        qry = PayRun.select().where(
-            (PayRun.fy == prev_tag.fy) &
-            (PayRun.pp == prev_tag.pp) &
-            (PayRun.cp == prev_tag.cp)
-        )
-        if not qry.exists():
-            return None
-        return qry.get().id
+        try:
+            run_id = PayRun.get(
+                (PayRun.fy == prev_tag.fy) &
+                (PayRun.pp == prev_tag.pp) &
+                (PayRun.cp == prev_tag.cp)
+            ).id
+        except PayRun.DoesNotExist:
+            run_id = None
+        return run_id
 
     def _get_previous_records(self):
-        prev_ien = int(self.ien) - 1
-        qry = PayRun.select().where((PayRun.ien == prev_ien) & (PayRun.cp == self.cp))
-        if not qry.exists():
-            return None
-        prev_run = qry.get()
-        return prev_run.records
+        from models import PayRecord
+        prev_id = self.get_previous_run_id()
+        return [PayRecord(r)
+                for r in PayRecord.select().where(
+                PayRecord.payrun == prev_id)
+                ] or None
 
     # def save(self):
         # self.db.payruns.insert({'tag': self.tag, 'diffs': self.diffs})

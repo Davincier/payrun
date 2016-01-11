@@ -21,8 +21,10 @@ def import_data():
     with db.atomic():
         PayRun.insert_many(runs).execute()
 
-    for run in PayRun.select():
+    runs = [run for run in PayRun.select()]
 
+    for run in runs:
+        print('%d: %s: %s' % (run.id, run.ien, str(run)))
         filename = path + run.ien + '_' + run.cp + '.txt'
         f = open(filename)
         dta = f.readlines()
@@ -32,14 +34,20 @@ def import_data():
             if line[0].isdigit():
                 emp = make_emp(line, run.cp)
                 rec = make_rec(line.rstrip(), run.id, emp.id)
-                prev_run_id = run.get_previous_run_id()
-                if prev_run_id:
-                    rec.make_diffs(prev_run_id)
+
+        prev_run_id = run.get_previous_run_id()
+        if prev_run_id:
+            print('getting rex...')
+            rex = [rec for rec in run.records]
+            print('%d rex' % len(rex))
+            for rec in rex:
+                print('rec: %d' % rec.id)
+                rec.make_diffs(prev_run_id)
 
 
 def make_emp(line, cp):
     flds = line.split('^')
-    if Employee.has_record(flds[1]):
+    if Employee.has_payrecord(flds[1]):
         return Employee.get_by_name(flds[1])
     return Employee.create(
         dfn=flds[0],

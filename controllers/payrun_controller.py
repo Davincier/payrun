@@ -11,22 +11,14 @@ class PayrunController(object):
 
     def load_payruns(self):
         self.payruns = PayRun.get_all()
-        if self.payruns.exists():
+        if self.payruns:
             self.widget.load_payruns(self.payruns)
             self.widget.select_payrun(0)
 
     def payrun_selected(self, tag_str):
-        self.run = self.get_run(tag_str)
+        self.run = PayRun.get_by_tag(tag_str)
         self.load_employees()
-        # self.widget.add_diffs_widget(PayDiffsWidget(self.run.diffs))
-
-    def get_run(self, tag_str):
-        tag = PayRun.get_tag(tag_str)
-        return self.payruns.select().where(
-            (PayRun.fy == tag.fy) &
-            (PayRun.pp == tag.pp) &
-            (PayRun.cp == tag.cp)
-        ).get()
+        self.widget.add_diffs_widget(PayDiffsWidget(self.run.diffs))
 
     def load_employees(self):
         if not self.run:
@@ -35,12 +27,11 @@ class PayrunController(object):
         self.widget.load_employees(employee_names)
 
     def employee_selected(self, employee_name):
-        from models import Employee
-        rec = self.run.records.select().join(Employee).where(Employee.name == employee_name)
-        if not rec.exists():
+        rec = self.run.get_record_for_employee(employee_name)
+        if not rec:
             return
         from controllers import PayrecController
-        controller = PayrecController(str(self.run), rec.get())
+        controller = PayrecController(str(self.run), rec)
         controller.runit()
 
     def runit(self):
