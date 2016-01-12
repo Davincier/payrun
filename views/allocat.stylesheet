@@ -1,10 +1,13 @@
 QWidget, QDialog {
-	background-color: rgb(75,75,75);
+	background-color: silver;
 }
 
 QListWidget, QTableWidget {
 	background-color: gainsboro;
-	color: rgb(75,75,75);
+	color: black;
+    border-width: 1px;
+    border-style: solid;
+    border-color: black;
 }
 
 QListWidget::item:hover {
@@ -29,6 +32,12 @@ QGroupBox {
     font-size: 12px;
     font-weight: bold;
     padding: 5 5px;
+    border-width: 1px;
+    border-style: solid;
+    border-color: black;
+}
+
+QScrollArea {
     border-width: 1px;
     border-style: solid;
     border-color: black;

@@ -38,7 +38,7 @@ class PayrunController(object):
         self.widget.show()
 
     def add_run_clicked(self, latest_run_tag):
-        latest_run = self.get_run(latest_run_tag)
+        latest_run = PayRun.get(latest_run_tag)
         run_tag = latest_run.next_tag()
         pay_period = PayRun.pay_period(run_tag)
 
