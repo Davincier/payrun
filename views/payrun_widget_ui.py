@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'payrun_widget.ui'
 #
-# Created: Tue Dec  1 14:10:46 2015
+# Created: Mon Jan 11 14:58:19 2016
 #      by: PyQt5 UI code generator 5.3.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -20,9 +20,10 @@ class Ui_payrunWidget(object):
         payrunWidget.setSizePolicy(sizePolicy)
         payrunWidget.setBaseSize(QtCore.QSize(0, 0))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("images/greencat.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("../images/greencat.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         payrunWidget.setWindowIcon(icon)
         payrunWidget.setAutoFillBackground(False)
+        payrunWidget.setStyleSheet("")
         self.gridLayout = QtWidgets.QGridLayout(payrunWidget)
         self.gridLayout.setObjectName("gridLayout")
         self.payrunGrid = QtWidgets.QGridLayout()
@@ -34,6 +35,7 @@ class Ui_payrunWidget(object):
         font.setBold(True)
         font.setWeight(75)
         self.label_2.setFont(font)
+        self.label_2.setContentsMargins(8, 8, 8, 8)
         self.label_2.setObjectName("label_2")
         self.payrunGrid.addWidget(self.label_2, 3, 0, 1, 1)
         self.payrunList = QtWidgets.QListWidget(payrunWidget)
@@ -54,6 +56,7 @@ class Ui_payrunWidget(object):
         font.setBold(True)
         font.setWeight(75)
         self.label.setFont(font)
+        self.label.setContentsMargins(8, 8, 8, 8)
         self.label.setObjectName("label")
         self.payrunGrid.addWidget(self.label, 0, 0, 1, 1)
         self.addRunButton = QtWidgets.QPushButton(payrunWidget)
@@ -72,6 +75,7 @@ class Ui_payrunWidget(object):
         font.setBold(True)
         font.setWeight(75)
         self.label_3.setFont(font)
+        self.label_3.setContentsMargins(8, 8, 8, 8)
         self.label_3.setObjectName("label_3")
         self.payrunGrid.addWidget(self.label_3, 0, 1, 1, 1)
         self.gridLayout.addLayout(self.payrunGrid, 0, 0, 1, 1)
@@ -85,5 +89,6 @@ class Ui_payrunWidget(object):
         self.label_2.setText(_translate("payrunWidget", "Employees"))
         self.label.setText(_translate("payrunWidget", "Pay Runs"))
         self.addRunButton.setText(_translate("payrunWidget", "Add Next Run"))
+        self.addRunButton.setProperty("class", _translate("payrunWidget", "addbtn"))
         self.label_3.setText(_translate("payrunWidget", "Differences"))
 

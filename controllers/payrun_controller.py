@@ -24,7 +24,7 @@ class PayrunController(object):
         if not self.run:
             return
         employee_names = [rec.employee.name for rec in self.run.records]
-        self.widget.load_employees(employee_names)
+        self.widget.load_employees(sorted(employee_names))
 
     def employee_selected(self, employee_name):
         rec = self.run.get_record_for_employee(employee_name)

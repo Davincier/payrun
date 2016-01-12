@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QGroupBox, \
     QScrollArea, QTableWidget, QTableWidgetItem
 from PyQt5.QtCore import Qt
+from .helpers import *
 
 
 class PayDiffsWidget(QWidget):
@@ -49,9 +50,9 @@ class PayDiffsWidget(QWidget):
 
         for row, diff in enumerate(diffs):
             tbl.setItem(row, 0, QTableWidgetItem(diff.field_name))
-            item1 = QTableWidgetItem(str(diff.current_amount))
-            item2 = QTableWidgetItem(str(diff.previous_amount))
-            if self.significant_diff(diff.current_amount, diff.previous_amount):
+            item1 = QTableWidgetItem(to_money(diff.current_amount))
+            item2 = QTableWidgetItem(to_money(diff.previous_amount))
+            if self._significant_diff(diff.current_amount, diff.previous_amount):
                 item1.setForeground(red)
                 item2.setForeground(red)
             tbl.setItem(row, 1, item1)
@@ -64,7 +65,7 @@ class PayDiffsWidget(QWidget):
         tbl.setFixedSize(tbl.horizontalHeader().length() + 20, ht)
         return tbl
 
-    def significant_diff(self, current, previous):
+    def _significant_diff(self, current, previous):
         if not current and not previous:
             return False
         if not current or not previous:

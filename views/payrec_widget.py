@@ -1,6 +1,8 @@
 from PyQt5.QtWidgets import QDialog
 from PyQt5.QtGui import QFont
+from app import rec_fields
 from views.payrec_widget_ui import Ui_PayrecWidget
+from .helpers import *
 
 
 class PayrecWidget(QDialog):
@@ -32,34 +34,21 @@ class PayrecWidget(QDialog):
 
         # I have no fucking idea why setItem needs a -1 row,
         # but this "works"
-        for row, field in enumerate(fields):
-            s = str(getattr(payrec, field))
-            if s == 'None':
-                s = ''
+        for row, field in enumerate(rec_fields):
+            s = self._format_amount(field, getattr(payrec, field))
             self.ui.rec_table.setItem(row - 1, 1, QTableWidgetItem(s))
 
-
-# fields = [
-#     '8B NORMAL HOURS',
-#     'NORMAL HOURS',
-#     'OASDI TAX VA SHARE CPPD',
-#     'FEGLI VA SHARE CPPD',
-#     'HEALTH BENEFITS VA SHARE CPPD',
-#     'RETIREMENT VA SHARE CPPD',
-#     'TSP CSF GOV BASIC CONTRIB',
-#     'TSP GSF GOV BASIC CONTRIB',
-#     'TSP CSF GOV MATCH CONTRIB',
-#     'TSP GSF GOV MATCH CONTRIB',
-#     'BASE PAY CPPD',
-#     'HOLIDAY AMT',
-#     'OVERTIME AMT CPPD',
-#     'GROSS PAY PLUS BENEFITS CPPD',
-#     'OVERTIME HOURS WK 1',
-#     'OVERTIME HOURS WK 2',
-#     'OVERTIME AMT WK 1',
-#     'OVERTIME AMT WK 2',
-#     'HRS EXCESS 8 DAY WK 1',
-#     'HRS EXCESS 8 DAY WK 2',
-#     'HRS EXCESS 8 DAY AMT WK 1',
-#     'HRS EXCESS 8 DAY AMT WK 2'
-# ]
+    def _format_amount(self, fldname, value):
+        if fldname in [
+            'normal_hours_8b',
+            'normal_hours',
+            'overtime_hrs_wk_1',
+            'overtime_hrs_wk_2',
+            'hrs_excess_8_day_wk1',
+            'hrs_excess_8_day_wk2'
+        ]:
+            return str(value)
+        # elif fldname in []:
+        #     return to_money(value)
+        # else:
+        return to_money(value)

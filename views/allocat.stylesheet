@@ -1,0 +1,35 @@
+QWidget, QDialog {
+	background-color: rgb(75,75,75);
+}
+
+QListWidget, QTableWidget {
+	background-color: gainsboro;
+	color: rgb(75,75,75);
+}
+
+QListWidget::item:hover {
+	background-color: red;
+	color: white;
+	font-weight: bold;
+}
+
+QLabel {
+	background-color: rgb(75,75,75);
+	color: ivory;
+}
+
+QPushButton.addbtn {
+	color: ivory;
+	background-color: teal;
+}
+
+QGroupBox {
+    background-color: lightsteelblue;
+    color: rgb(75,75,75);
+    font-size: 12px;
+    font-weight: bold;
+    padding: 5 5px;
+    border-width: 1px;
+    border-style: solid;
+    border-color: black;
+}

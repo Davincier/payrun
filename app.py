@@ -11,6 +11,9 @@ def main():
     from controllers import PayrunController
 
     app = QApplication(sys.argv)
+    ssh_file = 'views/allocat.stylesheet'
+    with open(ssh_file, "r") as fh:
+        app.setStyleSheet(fh.read())
 
     ctrlr = PayrunController()
     ctrlr.runit()
