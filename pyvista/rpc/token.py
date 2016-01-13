@@ -4,7 +4,7 @@ from Crypto.Cipher import AES
 from Crypto import Random
 
 BS = 16
-secret_key = 'MortimerSnerdKey'.encode()
+secret_key = ''.encode()
 
 TokenParams = namedtuple('TokenParams', ['site_id', 'fed_id', 'username', 'duz'])
 
