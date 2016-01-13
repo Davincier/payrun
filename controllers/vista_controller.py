@@ -1,4 +1,4 @@
-from pyvista.rpc import RpcServer, RpcVisitor
+from pyvista.rpc import RpcServer, RpcVisitor, RpcException, VistaToken
 from pyvista.fms import FmsPayrun
 
 
@@ -14,13 +14,17 @@ class VistaController(object):
 
         self.host = data['vista']['host']
         self.port = data['vista']['port']
+        token = data['vista']['token']
+        vparams = VistaToken.decrypt(token)
+        if vparams.site_id != data['vista']['site_id']:
+            raise RpcException('Invalid vparams')
         self.user = {
-            "fed_id": data['vista']['user']['fed_id'],
-            "user_name": data['vista']['user']['name'],
+            "fed_id": vparams.fed_id,
+            "user_name": vparams.username,
             "source_name": data['vista']['site_name'],
-            "source_id": data['vista']['site_id'],
-            "uid": data['vista']['user']['uid'],
-            "phone": data['vista']['user']['phone']
+            "source_id": vparams.site_id,
+            "uid": vparams.duz,
+            "phone": 'No phone'
         }
         self.cps = data['control_points']
 
@@ -29,7 +33,7 @@ class VistaController(object):
         svr.open()
         if not svr.is_open:
             msg = 'Unable to connect to %s, port %d' % (self.host, self.port)
-            raise Exception(msg)
+            raise RpcException(msg)
         visitor = RpcVisitor(self.user)
         visitor.visit(svr)
         return svr
